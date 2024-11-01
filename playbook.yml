@@ -1,0 +1,42 @@
+---
+- name: Set up web server
+  hosts: web
+  become: yes
+  tasks:
+    - name: Install Apache and PHP
+      apt:
+        name:
+          - apache2
+          - php
+          - libapache2-mod-php
+        state: present
+      notify:
+        - restart apache
+
+    - name: Upload a sample PHP website
+      copy:
+        src: ~/ansible-project/sample.php
+        dest: /var/www/html/index.php
+      notify:
+        - restart apache
+
+  handlers:
+    - name: restart apache
+      service:
+        name: apache2
+        state: restarted
+
+- name: Set up database server
+  hosts: db
+  become: yes
+  tasks:
+    - name: Install MySQL server
+      dnf:
+        name: mysql-server
+        state: present
+
+    - name: Start and enable MySQL service
+      systemd:
+        name: mysqld
+        state: started
+        enabled: yes
